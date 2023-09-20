@@ -18,6 +18,7 @@ public class TerminalHandler extends AbstractWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         log.info("建立ws连接");
         WebSocketSessionManager.add(session.getId(), session);
+        session.sendMessage(new TextMessage("连接成功"));
     }
 
     @Override
