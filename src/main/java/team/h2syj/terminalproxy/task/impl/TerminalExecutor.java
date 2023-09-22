@@ -37,7 +37,8 @@ public class TerminalExecutor extends AbstractAsyncTask {
             //直到读完为止
             while (!stop && (line = br.readLine()) != null)
                 session.sendMessage(new TextMessage(line));
-            process.waitFor();
+            int exitValue = process.waitFor();
+            session.sendMessage(new TextMessage(String.format("!exit:%s", exitValue)));
         } catch (IOException | InterruptedException e) {
             log.error(e.getMessage(), e);
             try {
