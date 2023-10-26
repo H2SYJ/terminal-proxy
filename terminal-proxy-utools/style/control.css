@@ -1,0 +1,37 @@
+/* 按钮 */
+button {
+	position: relative;
+	background-color: rgb(32, 93, 224);
+	border: none;
+	font-size: 1rem;
+	color: #ffffff;
+	padding: .9rem;
+	width: 10rem;
+	text-align: center;
+	transition-duration: 0.6s;
+	text-decoration: none;
+	overflow: hidden;
+	cursor: pointer;
+}
+
+button::after {
+	content: '';
+	background: #53a4f0;
+	display: block;
+	position: absolute;
+	padding-top: 300%;
+	padding-left: 350%;
+	margin-left: -20px !important;
+	margin-top: -120%;
+	opacity: 0;
+	transition: all 0.8s;
+}
+
+button:active::after {
+	padding: 0;
+	margin: 0;
+	opacity: 1;
+	transition: 0s;
+}
+
+/* 输入框 */
