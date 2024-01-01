@@ -104,6 +104,7 @@
 				let messageDiv = document.createElement('div');
 				messageDiv.innerHTML = msg;
 				content.appendChild(messageDiv);
+				content.scrollTop = content.scrollHeight;
 			}
 
 			function sendMessage(msg) {
