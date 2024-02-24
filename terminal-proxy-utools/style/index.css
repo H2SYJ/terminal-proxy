@@ -3,8 +3,11 @@
 	margin: 0;
 }
 
+html, body {
+	height: 100%;
+}
+
 body {
-	height: 545px;
 	width: 100%;
 	display: flex;
 	align-items: center;
