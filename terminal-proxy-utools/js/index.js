@@ -46,11 +46,16 @@ function connection() {
 	});
 	document.querySelector('.container').insertBefore(content, inputArea);
 	// 添加到侧边栏显示
-	let changeBtn = document.createElement('a');
-	changeBtn.href = '#';
-	changeBtn.innerHTML = `<span>${terminalId.substring(terminalId.length - 6, terminalId.length)}</span>`;
-	changeBtn.setAttribute('data-target', terminalId);
-	changeBtn.addEventListener('click', (e) => {
+	let changeLi = document.createElement('li');
+	changeLi.innerHTML = `
+	<div>
+		<span>${terminalId.substring(terminalId.length - 6, terminalId.length)}</span>
+		<i>${getCurrentTime()}</i>
+	</div>
+	<div>内容</div>
+	`;
+	changeLi.setAttribute('data-target', terminalId);
+	changeLi.addEventListener('click', (e) => {
 		e.preventDefault();
 		document.querySelectorAll('.container .content').forEach(page => {
 			page.style.display = 'none';
@@ -59,7 +64,7 @@ function connection() {
 		curTerminalId = terminalId;
 		curTerminal = terminals.get(terminalId);
 	});
-	document.querySelector('.sidebar').appendChild(changeBtn);
+	document.querySelector('.terminal-list').appendChild(changeLi);
 
 	let socket = new WebSocket(terminalProxyHost);
 	socket.onopen = function (e) {
@@ -123,11 +128,18 @@ function scrollTopToEnd(terminalId) {
 }
 
 function generateUUID() {
-	var dt = new Date().getTime();
-	var uuid = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-		var r = (dt + Math.random() * 16) % 16 | 0;
+	let dt = new Date().getTime();
+	let uuid = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+		let r = (dt + Math.random() * 16) % 16 | 0;
 		dt = Math.floor(dt / 16);
 		return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
 	});
 	return uuid;
+}
+
+function getCurrentTime() {
+	const now = new Date();
+	const hours = String(now.getHours()).padStart(2, '0');
+	const minutes = String(now.getMinutes()).padStart(2, '0');
+	return `${hours}:${minutes}`;
 }

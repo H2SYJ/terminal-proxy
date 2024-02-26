@@ -121,29 +121,56 @@ body {
 	border-radius: 50%;
 }
 
-.sidebar {
+.terminal-list {
 	width: 20%;
 	height: 100%;
-	background-color: #333;
 	position: fixed;
 	left: 0;
 	top: 0;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
+	font-size: 16px;
+	padding: 2px;
 	align-items: center;
 }
 
-.sidebar a {
-	display: block;
-	padding: 15px;
-	color: white;
-	text-decoration: none;
-	transition: background-color 0.3s;
+.terminal-list li {
+	width: 85%;
+	padding: 8px;
+	list-style: none;
+	border-radius: 8px;
 }
 
-.sidebar a:hover {
-	background-color: #444;
+.terminal-list li:hover {
+	background-color: #ebeced;
+}
+
+.terminal-list li div:first-of-type {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.terminal-list li div:first-of-type>span {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #333;
+}
+
+.terminal-list li div:first-of-type>i {
+	color: #666;
+	font-style: normal;
+	font-size: 12px;
+}
+
+.terminal-list li div:last-of-type {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: #666;
+	font-size: 14px;
 }
 
 .input-area {
