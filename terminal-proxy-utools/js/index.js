@@ -1,7 +1,8 @@
 const terminalProxyHost = 'ws://192.168.3.33:2330/terminal';
 let history = [];
 let historyCursor = -1;
-let terminals = [];
+let terminals = new Map();
+let curTerminalId;
 let curTerminal;
 let lastMessageTime = -1;
 let lastMessageId = '';
@@ -18,7 +19,7 @@ function send() {
 	try {
 		curTerminal.send(msg);
 	} catch (e) {
-		addSystemMessage(e);
+		addSystemMessage(curTerminalId, e);
 		console.log(e);
 	}
 
@@ -26,46 +27,75 @@ function send() {
 	item.className = 'item item-right';
 	item.innerHTML =
 		`<div class="bubble bubble-right">${msg}</div><div class="avatar"><img src="img/user.png" /></div>`;
-	document.querySelector('.content').appendChild(item);
+	document.querySelector(`#${curTerminalId}`).appendChild(item);
 	document.querySelector('#textarea').value = '';
 	document.querySelector('#textarea').focus();
-	scrollTopToEnd();
+	scrollTopToEnd(curTerminalId);
 }
 
 function connection() {
-	let socket = new WebSocket(terminalProxyHost);
-	socket.onopen = function(e) {
-		addSystemMessage('开始连接');
-	};
-	socket.addEventListener("message", function(e) {
-		reviceMessage(e.data)
+	let terminalId = "terminal-" + generateUUID();
+	// 添加一个消息容器到主界面
+	let content = document.createElement('div');
+	content.className = 'content';
+	content.id = terminalId;
+	content.style.display = 'block';
+	let inputArea = document.querySelector('.input-area');
+	document.querySelectorAll('.container .content').forEach(page => {
+		page.style.display = 'none';
 	});
-	terminals.push(socket);
+	document.querySelector('.container').insertBefore(content, inputArea);
+	// 添加到侧边栏显示
+	let changeBtn = document.createElement('a');
+	changeBtn.href = '#';
+	changeBtn.innerHTML = `<span>${terminalId.substring(terminalId.length - 6, terminalId.length)}</span>`;
+	changeBtn.setAttribute('data-target', terminalId);
+	changeBtn.addEventListener('click', (e) => {
+		e.preventDefault();
+		document.querySelectorAll('.container .content').forEach(page => {
+			page.style.display = 'none';
+		});
+		document.getElementById(terminalId).style.display = 'block';
+		curTerminalId = terminalId;
+		curTerminal = terminals.get(terminalId);
+	});
+	document.querySelector('.sidebar').appendChild(changeBtn);
+
+	let socket = new WebSocket(terminalProxyHost);
+	socket.onopen = function (e) {
+		addSystemMessage(terminalId, '开始连接');
+	};
+	socket.addEventListener("message", function (e) {
+		reviceMessage(terminalId, e.data)
+	});
+	terminals.set(terminalId, socket);
+	if (!curTerminalId)
+		curTerminalId = terminalId;
 	if (!curTerminal)
 		curTerminal = socket;
 }
 
-function reviceMessage(msg) {
+function reviceMessage(terminalId, msg) {
 	let curTime = new Date().getTime();
 	if (curTime - lastMessageTime < 1000) {
 		document.querySelector(`#msg-${lastMessageId}`).innerHTML += "</br>" + msg;
 	} else {
-		lastMessageId = generateMessageId();
+		lastMessageId = generateUUID();
 		let item = document.createElement('div');
 		item.className = 'item item-left';
 		item.innerHTML =
 			`<div class="avatar"><img src="img/terminal.png" /></div><div class="bubble bubble-left" id="msg-${lastMessageId}">${msg}</div>`;
-		document.querySelector('.content').appendChild(item);
+		document.querySelector(`#${terminalId}`).appendChild(item);
 	}
 	lastMessageTime = curTime;
-	scrollTopToEnd();
+	scrollTopToEnd(terminalId);
 }
 
-function addSystemMessage(msg) {
+function addSystemMessage(terminalId, msg) {
 	let item = document.createElement('div');
 	item.className = 'item item-center';
 	item.innerHTML = `<span>${msg}</span>`;
-	document.querySelector('.content').appendChild(item);
+	document.querySelector(`#${terminalId}`).appendChild(item);
 }
 
 function keyDown(input) {
@@ -86,15 +116,15 @@ function keyDown(input) {
 	}
 }
 
-function scrollTopToEnd() {
+function scrollTopToEnd(terminalId) {
 	//滚动条置底
-	let height = document.querySelector('.content').scrollHeight;
-	document.querySelector(".content").scrollTop = height;
+	let height = document.querySelector(`#${terminalId}`).scrollHeight;
+	document.querySelector(`#${terminalId}`).scrollTop = height;
 }
 
-function generateMessageId() {
+function generateUUID() {
 	var dt = new Date().getTime();
-	var uuid = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	var uuid = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
 		var r = (dt + Math.random() * 16) % 16 | 0;
 		dt = Math.floor(dt / 16);
 		return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
