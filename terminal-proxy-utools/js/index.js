@@ -30,6 +30,7 @@ function send() {
 	document.querySelector(`#${curTerminalId}`).appendChild(item);
 	document.querySelector('#textarea').value = '';
 	document.querySelector('#textarea').focus();
+	updateTerminalList(curTerminalId, msg);
 	scrollTopToEnd(curTerminalId);
 }
 
@@ -52,7 +53,7 @@ function connection() {
 		<span>${terminalId.substring(terminalId.length - 6, terminalId.length)}</span>
 		<i>${getCurrentTime()}</i>
 	</div>
-	<div>内容</div>
+	<div></div>
 	`;
 	changeLi.setAttribute('data-target', terminalId);
 	changeLi.addEventListener('click', (e) => {
@@ -93,6 +94,7 @@ function reviceMessage(terminalId, msg) {
 		document.querySelector(`#${terminalId}`).appendChild(item);
 	}
 	lastMessageTime = curTime;
+	updateTerminalList(terminalId, msg);
 	scrollTopToEnd(terminalId);
 }
 
@@ -101,6 +103,12 @@ function addSystemMessage(terminalId, msg) {
 	item.className = 'item item-center';
 	item.innerHTML = `<span>${msg}</span>`;
 	document.querySelector(`#${terminalId}`).appendChild(item);
+	updateTerminalList(terminalId, msg);
+}
+
+function updateTerminalList(terminalId, msg) {
+	document.querySelector(`.terminal-list>li[data-target='${terminalId}'] i`).innerHTML = getCurrentTime();
+	document.querySelector(`.terminal-list>li[data-target='${terminalId}'] div:last-of-type`).innerHTML = msg;
 }
 
 function keyDown(input) {
