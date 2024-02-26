@@ -7,12 +7,7 @@ let curTerminal;
 let lastMessageTime = -1;
 let lastMessageId = '';
 
-function send() {
-	let msg = document.querySelector('#textarea').value;
-	if (!msg) {
-		alert('请输入内容');
-		return;
-	}
+function send(msg) {
 	history.push(msg);
 	historyCursor = history.length;
 
@@ -68,10 +63,10 @@ function connection() {
 	document.querySelector('.terminal-list').appendChild(changeLi);
 
 	let socket = new WebSocket(terminalProxyHost);
-	socket.onopen = function (e) {
+	socket.onopen = function(e) {
 		addSystemMessage(terminalId, '开始连接');
 	};
-	socket.addEventListener("message", function (e) {
+	socket.addEventListener("message", function(e) {
 		reviceMessage(terminalId, e.data)
 	});
 	terminals.set(terminalId, socket);
@@ -79,6 +74,7 @@ function connection() {
 		curTerminalId = terminalId;
 	if (!curTerminal)
 		curTerminal = socket;
+	return terminalId;
 }
 
 function reviceMessage(terminalId, msg) {
@@ -114,7 +110,12 @@ function updateTerminalList(terminalId, msg) {
 function keyDown(input) {
 	var keycode = event.keyCode;
 	if (keycode == 13) { //回车键是13 
-		send();
+		let msg = document.querySelector('#textarea').value;
+		if (!msg) {
+			alert('请输入内容');
+			return;
+		}
+		send(msg);
 		event.preventDefault();
 	} else if (keycode == 38) { // 上键
 		if (historyCursor <= 0 || history.length == 0)
@@ -137,7 +138,7 @@ function scrollTopToEnd(terminalId) {
 
 function generateUUID() {
 	let dt = new Date().getTime();
-	let uuid = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+	let uuid = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 		let r = (dt + Math.random() * 16) % 16 | 0;
 		dt = Math.floor(dt / 16);
 		return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
@@ -150,4 +151,16 @@ function getCurrentTime() {
 	const hours = String(now.getHours()).padStart(2, '0');
 	const minutes = String(now.getMinutes()).padStart(2, '0');
 	return `${hours}:${minutes}`;
+}
+
+function debug(msg) {
+	let curTime = new Date().getTime();
+	lastMessageId = generateUUID();
+	let item = document.createElement('div');
+	item.className = 'item item-left';
+	item.innerHTML =
+		`<div class="avatar"><img src="img/terminal.png" /></div><div class="bubble bubble-left" id="msg-${lastMessageId}">${msg}</div>`;
+	document.querySelector('#debug').appendChild(item);
+	updateTerminalList('debug', msg);
+	scrollTopToEnd('debug');
 }
