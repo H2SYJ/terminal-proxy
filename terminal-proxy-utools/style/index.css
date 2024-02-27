@@ -3,7 +3,8 @@
 	margin: 0;
 }
 
-html, body {
+html,
+body {
 	height: 100%;
 }
 
@@ -155,10 +156,25 @@ body {
 	padding: 8px;
 	list-style: none;
 	border-radius: 8px;
+	position: relative;
 }
 
 .terminal-list li:hover {
 	background-color: #ebeced;
+}
+
+.terminal-list .close {
+	display: none;
+	position: absolute;
+	right: 8px;
+	top: 70%;
+	transform: translateY(-50%);
+	color: #999;
+	text-decoration: none;
+}
+
+.terminal-list li:hover .close {
+	display: block;
 }
 
 .terminal-list li div:first-of-type {

@@ -47,8 +47,7 @@ function connection() {
 		<span>${terminalId.substring(terminalId.length - 6, terminalId.length)}</span>
 		<i>${getCurrentTime()}</i>
 	</div>
-	<div></div>
-	`;
+	<div></div>`;
 	changeLi.setAttribute('data-target', terminalId);
 	changeLi.addEventListener('click', (e) => {
 		e.preventDefault();
@@ -59,6 +58,16 @@ function connection() {
 		curTerminalId = terminalId;
 		curTerminal = terminals.get(terminalId);
 	});
+	let close = document.createElement('a');
+	close.href = '#';
+	close.innerText = '✕';
+	close.className = 'close';
+	close.addEventListener('click', (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		closeTerminal(terminalId);
+	});
+	changeLi.appendChild(close);
 	document.querySelector('.terminal-list').appendChild(changeLi);
 
 	let socket = new WebSocket(terminalProxyHost);
@@ -98,6 +107,23 @@ function addSystemMessage(terminalId, msg) {
 	item.innerHTML = `<span>${msg}</span>`;
 	document.querySelector(`#${terminalId}`).appendChild(item);
 	updateTerminalList(terminalId, msg);
+}
+
+function closeTerminal(terminalId) {
+	let terminal = terminals.get(terminalId);
+	if (terminal && terminal.readyState == WebSocket.OPEN) {
+		debug(`[close] ${terminalId}`);
+		terminal.close();
+	}
+	terminals.delete(terminalId);
+	lastMessageMap.delete(terminalId);
+	document.querySelector('.terminal-list').removeChild(document.querySelector(`.terminal-list>li[data-target='${terminalId}']`));
+	document.querySelector('.container').removeChild(document.querySelector(`#${terminalId}`));
+	if (curTerminal == terminal) {
+		curTerminal = '';
+		curTerminalId = '';
+		document.querySelector('li[data-target="debug"]').click();
+	}
 }
 
 function updateTerminalList(terminalId, msg) {
