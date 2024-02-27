@@ -42,5 +42,9 @@
 			document.querySelector('li[data-target="debug"]').className = 'active';
 			document.getElementById("debug").style.display = 'block';
 		});
+
+		window.onerror = function (message, source, lineno, colno, error) {
+			debug(`[error] ${source}:${lineno}:${colno} : ${message} + ${JSON.stringify(error)}`);
+		}
 	</script>
 </html>
