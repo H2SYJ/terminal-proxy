@@ -1,4 +1,5 @@
-const terminalProxyHost = 'ws://127.0.0.1:2330/terminal';
+const terminalProxyHost = 'ws://192.168.3.33:2330/terminal';
+// const terminalProxyHost = 'ws://127.0.0.1:2330/terminal';
 let history = []; // 输入的历史记录
 let historyCursor = -1; // 历史记录游标
 let terminals = new Map(); // 终端集合 key: terminalId, value: Socket
