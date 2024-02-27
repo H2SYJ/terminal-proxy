@@ -142,26 +142,26 @@ function updateTerminalList(terminalId, msg) {
 	document.querySelector(`.terminal-list>li[data-target='${terminalId}'] div:last-of-type`).innerHTML = msg;
 }
 
-function keyDown(input) {
-	var keycode = event.keyCode;
+function keyDown(input, e) {
+	var keycode = e.keyCode;
 	if (keycode == 13) { //回车键是13 
 		let msg = document.querySelector('#textarea').value;
-		if (!msg) {
-			alert('请输入内容');
+		if (!msg)
 			return;
-		}
 		send(msg);
-		event.preventDefault();
+		e.preventDefault();
 	} else if (keycode == 38) { // 上键
 		if (historyCursor <= 0 || history.length == 0)
 			return;
 		historyCursor--;
 		input.value = history[historyCursor];
+		e.preventDefault();
 	} else if (keycode == 40) { // 下键
 		if (historyCursor >= history.length - 1 || history.length == 0)
 			return;
 		historyCursor++;
 		input.value = history[historyCursor];
+		e.preventDefault();
 	}
 }
 
