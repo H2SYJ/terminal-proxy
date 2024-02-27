@@ -1,10 +1,10 @@
 const terminalProxyHost = 'ws://127.0.0.1:2330/terminal';
-let history = [];
-let historyCursor = -1;
-let terminals = new Map();
-let curTerminalId;
-let curTerminal;
-let lastMessageMap = new Map();
+let history = []; // 输入的历史记录
+let historyCursor = -1; // 历史记录游标
+let terminals = new Map(); // 终端集合 key: terminalId, value: Socket
+let curTerminalId; // 当前终端Id
+let curTerminal; // 当前终端的Socket
+let lastMessageMap = new Map(); // 最新消息集合 key: terminalId, value: { terminalId, lastTime, lastMessage, lastMessageId }
 
 function send(msg) {
 	history.push(msg);
