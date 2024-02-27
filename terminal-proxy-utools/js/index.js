@@ -1,11 +1,10 @@
-const terminalProxyHost = 'ws://192.168.3.33:2330/terminal';
+const terminalProxyHost = 'ws://127.0.0.1:2330/terminal';
 let history = [];
 let historyCursor = -1;
 let terminals = new Map();
 let curTerminalId;
 let curTerminal;
-let lastMessageTime = -1;
-let lastMessageId = '';
+let lastMessageMap = new Map();
 
 function send(msg) {
 	history.push(msg);
@@ -30,7 +29,7 @@ function send(msg) {
 }
 
 function connection() {
-	let terminalId = "terminal-" + generateUUID();
+	const terminalId = "terminal-" + generateUUID();
 	// 添加一个消息容器到主界面
 	let content = document.createElement('div');
 	content.className = 'content';
@@ -63,33 +62,32 @@ function connection() {
 	document.querySelector('.terminal-list').appendChild(changeLi);
 
 	let socket = new WebSocket(terminalProxyHost);
-	socket.onopen = function(e) {
+	socket.onopen = function (e) {
 		addSystemMessage(terminalId, '开始连接');
 	};
-	socket.addEventListener("message", function(e) {
+	socket.addEventListener("message", function (e) {
 		reviceMessage(terminalId, e.data)
 	});
 	terminals.set(terminalId, socket);
-	if (!curTerminalId)
-		curTerminalId = terminalId;
-	if (!curTerminal)
-		curTerminal = socket;
+	curTerminalId = terminalId;
+	curTerminal = socket;
 	return terminalId;
 }
 
 function reviceMessage(terminalId, msg) {
 	let curTime = new Date().getTime();
-	if (curTime - lastMessageTime < 1000) {
-		document.querySelector(`#msg-${lastMessageId}`).innerHTML += "</br>" + msg;
+	let lastMessage = lastMessageMap.get(terminalId);
+	if (lastMessage && curTime - lastMessage.lastTime < 1000) {
+		document.querySelector(`#msg-${lastMessage.lastMessage}`).innerHTML += "</br>" + msg;
 	} else {
-		lastMessageId = generateUUID();
+		let lastMessageId = generateUUID();
+		lastMessageMap.set(terminalId, { terminalId: terminalId, lastTime: curTime, lastMessage: msg, lastMessageId: lastMessageId });
 		let item = document.createElement('div');
 		item.className = 'item item-left';
 		item.innerHTML =
 			`<div class="avatar"><img src="img/terminal.png" /></div><div class="bubble bubble-left" id="msg-${lastMessageId}">${msg}</div>`;
 		document.querySelector(`#${terminalId}`).appendChild(item);
 	}
-	lastMessageTime = curTime;
 	updateTerminalList(terminalId, msg);
 	scrollTopToEnd(terminalId);
 }
@@ -138,7 +136,7 @@ function scrollTopToEnd(terminalId) {
 
 function generateUUID() {
 	let dt = new Date().getTime();
-	let uuid = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	let uuid = 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
 		let r = (dt + Math.random() * 16) % 16 | 0;
 		dt = Math.floor(dt / 16);
 		return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
