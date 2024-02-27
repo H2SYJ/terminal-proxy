@@ -89,8 +89,9 @@ function connection() {
 function reviceMessage(terminalId, msg) {
 	let curTime = new Date().getTime();
 	let lastMessage = lastMessageMap.get(terminalId);
+	// debug(JSON.stringify(lastMessage))
 	if (lastMessage && curTime - lastMessage.lastTime < 1000) {
-		document.querySelector(`#msg-${lastMessage.lastMessage}`).innerHTML += "</br>" + msg;
+		document.querySelector(`#msg-${lastMessage.lastMessageId}`).innerHTML += "</br>" + msg;
 	} else {
 		let lastMessageId = generateUUID();
 		lastMessageMap.set(terminalId, { terminalId: terminalId, lastTime: curTime, lastMessage: msg, lastMessageId: lastMessageId });
