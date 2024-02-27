@@ -33,9 +33,13 @@
 	<script>
 		document.querySelector('li[data-target="debug"]').addEventListener('click', (e) => {
 			e.preventDefault();
-			document.querySelectorAll('.container .content').forEach(page => {
-				page.style.display = 'none';
+			document.querySelectorAll('.container .content').forEach(item => {
+				item.style.display = 'none';
 			});
+			document.querySelectorAll('.terminal-list li').forEach(item => {
+				item.className = '';
+			});
+			document.querySelector('li[data-target="debug"]').className = 'active';
 			document.getElementById("debug").style.display = 'block';
 		});
 	</script>

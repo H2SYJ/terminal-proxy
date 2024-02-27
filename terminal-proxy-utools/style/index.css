@@ -117,8 +117,8 @@ body {
 }
 
 .avatar img {
-	width: 42px;
-	height: 42px;
+	width: 35px;
+	height: 35px;
 	border-radius: 50%;
 }
 
@@ -148,7 +148,7 @@ body {
 	font-size: 16px;
 	padding: 2px;
 	align-items: center;
-	overflow-y: auto;
+	overflow-y: scroll;
 }
 
 .terminal-list li {
@@ -160,6 +160,10 @@ body {
 }
 
 .terminal-list li:hover {
+	background-color: #f0f1f2;
+}
+
+.terminal-list li.active {
 	background-color: #ebeced;
 }
 

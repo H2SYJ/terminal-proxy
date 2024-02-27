@@ -51,12 +51,13 @@ function connection() {
 	changeLi.setAttribute('data-target', terminalId);
 	changeLi.addEventListener('click', (e) => {
 		e.preventDefault();
-		document.querySelectorAll('.container .content').forEach(page => {
-			page.style.display = 'none';
+		document.querySelectorAll('.container .content').forEach(item => {
+			item.style.display = 'none';
 		});
 		document.getElementById(terminalId).style.display = 'block';
 		curTerminalId = terminalId;
 		curTerminal = terminals.get(terminalId);
+		refreshTermianlListState();
 	});
 	let close = document.createElement('a');
 	close.href = '#';
@@ -80,6 +81,7 @@ function connection() {
 	terminals.set(terminalId, socket);
 	curTerminalId = terminalId;
 	curTerminal = socket;
+	refreshTermianlListState();
 	return terminalId;
 }
 
@@ -124,6 +126,13 @@ function closeTerminal(terminalId) {
 		curTerminalId = '';
 		document.querySelector('li[data-target="debug"]').click();
 	}
+}
+
+function refreshTermianlListState() {
+	document.querySelectorAll('.terminal-list li').forEach(item => {
+		item.className = '';
+	});
+	document.querySelector(`.terminal-list li[data-target='${curTerminalId}']`).className = 'active';
 }
 
 function updateTerminalList(terminalId, msg) {
