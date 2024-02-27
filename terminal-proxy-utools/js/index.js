@@ -152,12 +152,10 @@ function getCurrentTime() {
 }
 
 function debug(msg) {
-	let curTime = new Date().getTime();
-	lastMessageId = generateUUID();
 	let item = document.createElement('div');
 	item.className = 'item item-left';
 	item.innerHTML =
-		`<div class="avatar"><img src="img/terminal.png" /></div><div class="bubble bubble-left" id="msg-${lastMessageId}">${msg}</div>`;
+		`<div class="avatar"><img src="img/terminal.png" /></div><div class="bubble bubble-left">${msg}</div>`;
 	document.querySelector('#debug').appendChild(item);
 	updateTerminalList('debug', msg);
 	scrollTopToEnd('debug');
