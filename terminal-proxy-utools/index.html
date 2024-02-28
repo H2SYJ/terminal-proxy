@@ -1,50 +1,53 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>终端代理</title>
-		<link href="style/index.css" rel="stylesheet" type="text/css" />
-		<script src="js/index.js" type="text/javascript"></script>
-		<script src="js/utools.js" type="text/javascript"></script> 
-	</head>
-	<body>
-		<div>
-			<ul class="terminal-list">
-				<li data-target="debug">
-					<div>
-						<span>debug</span>
-						<i></i>
-					</div>
-					<div></div>
-				</li>
-			</ul>
-			<button id="conn-btn" onclick="connection()">新建连接</button>
-		</div>
-		<div class="container">
-			<div class="content" id="debug"></div>
-			<div class="input-area">
-				<textarea name="text" id="textarea" onkeydown="keyDown(this, event);"></textarea>
-				<div class="button-area">
-					<button id="send-btn" onclick="send()">发 送</button>
-				</div>
-			</div>
-		</div>
-	</body>
-	<script>
-		document.querySelector('li[data-target="debug"]').addEventListener('click', (e) => {
-			e.preventDefault();
-			document.querySelectorAll('.container .content').forEach(item => {
-				item.style.display = 'none';
-			});
-			document.querySelectorAll('.terminal-list li').forEach(item => {
-				item.className = '';
-			});
-			document.querySelector('li[data-target="debug"]').className = 'active';
-			document.getElementById("debug").style.display = 'block';
-		});
 
-		window.onerror = function (message, source, lineno, colno, error) {
-			debug(`[error] ${source}:${lineno}:${colno} : ${message} + ${JSON.stringify(error)}`);
-		}
-	</script>
+<head>
+    <meta charset="utf-8">
+    <title>终端代理</title>
+    <link href="style/index.css" rel="stylesheet" type="text/css" />
+    <script src="js/index.js" type="text/javascript"></script>
+    <script src="js/utools.js" type="text/javascript"></script>
+</head>
+
+<body>
+    <div>
+        <ul class="terminal-list">
+            <li data-target="debug">
+                <div>
+                    <span>debug</span>
+                    <i></i>
+                </div>
+                <div></div>
+            </li>
+        </ul>
+        <button id="conn-btn" onclick="connection()">新建连接</button>
+    </div>
+    <div class="container">
+        <div class="content" id="debug"></div>
+        <div class="input-area">
+            <textarea name="text" id="textarea" onkeydown="keyDown(this, event);"></textarea>
+            <div class="button-area">
+                <button id="send-btn" onclick="send()">发 送</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    document.querySelector('li[data-target="debug"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('.container .content').forEach(item => {
+            item.style.display = 'none';
+        });
+        document.querySelectorAll('.terminal-list li').forEach(item => {
+            item.className = '';
+        });
+        document.querySelector('li[data-target="debug"]').className = 'active';
+        document.getElementById("debug").style.display = 'block';
+    });
+
+    window.onerror = function (message, source, lineno, colno, error) {
+        debug(`[error] ${source}:${lineno}:${colno} : ${message} + ${JSON.stringify(error)}`);
+    }
+</script>
+
 </html>
