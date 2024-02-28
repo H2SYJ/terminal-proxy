@@ -1,146 +1,53 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title></title>
-		<link rel="stylesheet" type="text/css" href="style/control.css" />
-		<style>
-			html,
-			body {
-				height: 99%;
-				background-color: black;
-			}
 
-			body {
-				display: flex;
-				flex-direction: column;
-			}
+<head>
+    <meta charset="utf-8">
+    <title>终端代理</title>
+    <link href="style/index.css" rel="stylesheet" type="text/css" />
+    <script src="js/index.js" type="text/javascript"></script>
+    <script src="js/utools.js" type="text/javascript"></script>
+</head>
 
-			#content {
-				width: 100%;
-				height: 100%;
-				color: ghostwhite;
-				overflow-y: auto;
-				overflow-x: hidden;
-				white-space: pre-wrap;
-				flex: 1;
-			}
+<body>
+    <div>
+        <ul class="terminal-list">
+            <li data-target="debug">
+                <div>
+                    <span>debug</span>
+                    <i></i>
+                </div>
+                <div></div>
+            </li>
+        </ul>
+        <button id="conn-btn" onclick="connection()">新建连接</button>
+    </div>
+    <div class="container">
+        <div class="content" id="debug"></div>
+        <div class="input-area">
+            <textarea name="text" id="textarea" onkeydown="keyDown(this, event);"></textarea>
+            <div class="button-area">
+                <button id="send-btn" onclick="send()">发 送</button>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    document.querySelector('li[data-target="debug"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('.container .content').forEach(item => {
+            item.style.display = 'none';
+        });
+        document.querySelectorAll('.terminal-list li').forEach(item => {
+            item.className = '';
+        });
+        document.querySelector('li[data-target="debug"]').className = 'active';
+        document.getElementById("debug").style.display = 'block';
+    });
 
-			#content>>div {
-				padding: 0.3125rem 0rem;
-			}
+    window.onerror = function (message, source, lineno, colno, error) {
+        debug(`[error] ${source}:${lineno}:${colno} : ${message} + ${JSON.stringify(error)}`);
+    }
+</script>
 
-			#footer {
-				display: flex;
-			}
-
-			#message {
-				width: 100%;
-				font-size: 1.2rem;
-			}
-		</style>
-		<script>
-			let history = [];
-			let historyCursor = -1;
-			let terminals = [];
-			let curTerminal;
-
-			utools.onPluginEnter(({
-				code,
-				type,
-				payload,
-				option
-			}) => {
-				if (code == 'addCommand') {
-					let data = JSON.parse(payload);
-					utools.setFeature(data)
-					reviceMessage(payload + " 指令添加成功");
-					return;
-				}
-				let message = payload;
-				let features = utools.getFeatures([code]);
-				if (features && features.length > 0) {
-					if (type == 'regex')
-						message = features[0].explain + " " + payload;
-					else if (type == 'text' && code != 'terminal')
-						message = features[0].explain;
-				}
-				connection();
-				let terminal = terminals[terminals.length - 1];
-				terminal.onopen = function(e) {
-					if (message && message != 'terminal') {
-						reviceMessage(message);
-						terminal.send(message);
-					}
-				}
-			});
-
-			utools.onPluginOut((processExit) => {
-				if (processExit) {
-					// 完全退出
-					terminals.forEach(function(terminal) {
-						terminal.close();
-					});
-				} else {
-					console.log('插件应用隐藏后台')
-				}
-			});
-
-			function connection() {
-				let socket = new WebSocket('ws://192.168.3.33:2330/terminal');
-				socket.onopen = function(e) {
-					reviceMessage('开始连接');
-				};
-				socket.addEventListener("message", function(e) {
-					reviceMessage(e.data)
-				});
-				terminals.push(socket);
-				if (!curTerminal)
-					curTerminal = socket;
-			}
-
-			function reviceMessage(msg) {
-				let content = document.getElementById('content');
-				let messageDiv = document.createElement('div');
-				messageDiv.innerHTML = msg;
-				content.appendChild(messageDiv);
-				content.scrollTop = content.scrollHeight;
-			}
-
-			function sendMessage(msg) {
-				reviceMessage(msg);
-				curTerminal.send(msg);
-			}
-
-			function keyDown(input) {
-				var keycode = event.keyCode;
-				if (keycode == 13) { //回车键是13 
-					let message = input.value;
-					history.push(message);
-					historyCursor = history.length;
-					input.value = '';
-					sendMessage(message);
-				} else if (keycode == 38) { // 上键
-					if (historyCursor <= 0 || history.length == 0)
-						return;
-					historyCursor--;
-					input.value = history[historyCursor];
-				} else if (keycode == 40) { // 下键
-					if (historyCursor >= history.length - 1 || history.length == 0)
-						return;
-					historyCursor++;
-					input.value = history[historyCursor];
-				}
-			}
-		</script>
-	</head>
-	<body>
-		<pre id="content">
-
-		</pre>
-		<div id="footer">
-			<button onclick="connection()">创建连接</button>
-			<input type="text" id="message" onkeydown="keyDown(this)" />
-		</div>
-	</body>
 </html>
