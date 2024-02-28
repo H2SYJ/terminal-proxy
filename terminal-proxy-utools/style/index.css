@@ -1,0 +1,267 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: hidden;
+    /* background-color: #000; */
+}
+
+.container {
+    height: 100%;
+    width: 80%;
+    border-radius: 4px;
+    border: 0.5px solid #e0e0e0;
+    background-color: #f5f5f5;
+    display: flex;
+    flex-flow: column;
+    overflow: hidden;
+    position: fixed;
+    right: 0;
+}
+
+.content {
+    width: calc(100% - 40px);
+    padding: 20px;
+    overflow-y: scroll;
+    flex: 1;
+}
+
+.content:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.bubble {
+    max-width: 400px;
+    padding: 10px;
+    border-radius: 5px;
+    position: relative;
+    color: #000;
+    word-wrap: break-word;
+    word-break: normal;
+}
+
+.item-left .bubble {
+    margin-left: 15px;
+    background-color: #fff;
+}
+
+.item-left .bubble:before {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-top: 10px solid transparent;
+    border-right: 10px solid #fff;
+    border-bottom: 10px solid transparent;
+    left: -19px;
+}
+
+.item-right .bubble {
+    margin-right: 15px;
+    background-color: #9eea6a;
+}
+
+.item-right .bubble:before {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-left: 10px solid #9eea6a;
+    border-top: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    right: -19px;
+}
+
+.item {
+    margin-top: 15px;
+    display: flex;
+    width: 100%;
+}
+
+.item.item-right {
+    justify-content: flex-end;
+}
+
+.item.item-center {
+    justify-content: center;
+}
+
+.item.item-center span {
+    font-size: 12px;
+    padding: 2px 4px;
+    color: #fff;
+    background-color: #dadada;
+    border-radius: 3px;
+    -moz-user-select: none;
+    /*火狐*/
+    -webkit-user-select: none;
+    /*webkit浏览器*/
+    -ms-user-select: none;
+    /*IE10*/
+    -khtml-user-select: none;
+    /*早期浏览器*/
+    user-select: none;
+}
+
+.avatar img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+#conn-btn {
+    width: 20%;
+    height: 5%;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    outline: none;
+    border: none;
+    border-top: 1px solid #ebeced;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background-color: #0089ff;
+    color: white;
+}
+
+.terminal-list {
+    width: 20%;
+    height: 95%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    font-size: 16px;
+    padding: 2px;
+    align-items: center;
+    overflow-y: scroll;
+}
+
+.terminal-list li {
+    width: 85%;
+    padding: 8px;
+    list-style: none;
+    border-radius: 8px;
+    position: relative;
+}
+
+.terminal-list li:hover {
+    background-color: #f0f1f2;
+}
+
+.terminal-list li.active {
+    background-color: #ebeced;
+}
+
+.terminal-list .close {
+    display: none;
+    position: absolute;
+    right: 8px;
+    top: 70%;
+    transform: translateY(-50%);
+    color: #999;
+    text-decoration: none;
+}
+
+.terminal-list li:hover .close {
+    display: block;
+}
+
+.terminal-list li div:first-of-type {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.terminal-list li div:first-of-type>span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #333;
+}
+
+.terminal-list li div:first-of-type>i {
+    color: #666;
+    font-style: normal;
+    font-size: 12px;
+}
+
+.terminal-list li div:last-of-type {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #666;
+    font-size: 14px;
+}
+
+.input-area {
+    border-top: 0.5px solid #e0e0e0;
+    height: 15%;
+    display: flex;
+    flex-flow: column;
+    background-color: #fff;
+}
+
+textarea {
+    flex: 1;
+    padding: 5px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    overflow-y: auto;
+    overflow-x: hidden;
+    outline: none;
+    resize: none;
+}
+
+.button-area {
+    display: flex;
+    height: 30px;
+    margin-right: 10px;
+    line-height: 30px;
+    padding: 5px;
+    justify-content: flex-end;
+}
+
+.button-area button {
+    width: 80px;
+    border: none;
+    outline: none;
+    border-radius: 4px;
+    float: right;
+    cursor: pointer;
+    margin: 0px 5px;
+}
+
+/* 设置滚动条的样式 */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* 滚动槽 */
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset006pxrgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+/* 滚动条滑块 */
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0);
+    -webkit-box-shadow: inset006pxrgba(0, 0, 0, 0.5);
+}

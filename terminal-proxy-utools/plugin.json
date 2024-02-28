@@ -1,20 +1,29 @@
 {
-	"main": "index.html",
-	"logo": "logo.jpg",
-	"features": [{
-		"code": "terminal",
-		"explain": "终端代理",
-		"cmds": ["terminal", "终端", {
-			"type": "over",
-			"label": "在终端运行"
-		}]
-	}, {
-		"code": "addCommand",
-		"explain": "添加指令",
-		"cmds": [{
-			"type": "regex",
-			"label": "添加指令",
-			"match": "/^{.*}$/"
-		}]
-	}]
+    "main": "index.html",
+    "logo": "logo.jpg",
+    "features": [
+        {
+            "code": "terminal",
+            "explain": "终端代理",
+            "cmds": [
+                "terminal",
+                "终端",
+                {
+                    "type": "over",
+                    "label": "在终端运行"
+                }
+            ]
+        },
+        {
+            "code": "addCommand",
+            "explain": "添加指令",
+            "cmds": [
+                {
+                    "type": "regex",
+                    "label": "添加指令",
+                    "match": "/^{.*}$/"
+                }
+            ]
+        }
+    ]
 }
