@@ -9,7 +9,7 @@
 
 #### 安装教程
 
-1. 将项目克隆到本地 `git clone git@gitee.com:o-0ho/terminal-proxy.git`
+1. 将项目克隆到本地 `git clone https://github.com/H2SYJ/terminal-proxy.git`
 2. 运行 `mvn clean package`
 3. 执行打包好的jar包（使用docker容器的话代理将会在docker容器中运行，所以建议使用宿主机直接运行）
 4. 安装utools插件
