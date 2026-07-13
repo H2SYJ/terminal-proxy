@@ -1,0 +1,41 @@
+{
+  "$schema": "node_modules/@ztools-center/ztools-api-types/resource/ztools.schema.json",
+  "name": "terminal-proxy",
+  "title": "终端代理",
+  "description": "快捷连接终端代理服务并执行命令",
+  "author": "H2SYJ",
+  "version": "1.0.0",
+  "main": "index.html",
+  "preload": "preload/services.js",
+  "logo": "logo.jpg",
+  "features": [
+    {
+      "code": "terminal",
+      "explain": "终端代理",
+      "icon": "logo.jpg",
+      "cmds": [
+        "terminal",
+        "终端",
+        {
+          "type": "over",
+          "label": "在终端运行",
+          "minLength": 1,
+          "maxLength": 10000
+        }
+      ]
+    },
+    {
+      "code": "addCommand",
+      "explain": "添加指令",
+      "icon": "logo.jpg",
+      "cmds": [
+        {
+          "type": "regex",
+          "label": "添加指令",
+          "match": "/^{.*}$/",
+          "minLength": 2
+        }
+      ]
+    }
+  ]
+}

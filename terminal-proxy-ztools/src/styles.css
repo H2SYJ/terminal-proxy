@@ -1,0 +1,375 @@
+:root {
+  color: #d8e3ed;
+  background: #08111b;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --panel: rgba(13, 27, 41, 0.92);
+  --panel-strong: #102235;
+  --border: rgba(151, 181, 204, 0.16);
+  --muted: #7f95a7;
+  --text: #d8e3ed;
+  --accent: #38d39f;
+  --accent-strong: #1db682;
+  --danger: #ff6b7a;
+  --warning: #ffbf5f;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+button,
+input { font: inherit; }
+
+button { cursor: pointer; }
+
+.app-shell {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(56, 211, 159, 0.1), transparent 30%),
+    linear-gradient(145deg, #071019, #0a1420 60%, #08111b);
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 74px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8, 17, 27, 0.78);
+  backdrop-filter: blur(16px);
+}
+
+.brand,
+.top-actions,
+.dialog-header,
+.dialog-actions {
+  display: flex;
+  align-items: center;
+}
+
+.brand { min-width: 0; gap: 12px; }
+
+.brand img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--border), 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.brand h1,
+.brand p,
+.dialog h2,
+.dialog p,
+.empty-state h2,
+.empty-state p { margin: 0; }
+
+.brand h1 { font-size: 17px; letter-spacing: 0.02em; }
+
+.brand p {
+  max-width: 52vw;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font: 12px/1.3 "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-actions,
+.dialog-actions { gap: 10px; }
+
+.button,
+.send-button,
+.icon-button,
+.text-button {
+  border: 0;
+  transition: 160ms ease;
+}
+
+.button {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.button.primary,
+.send-button {
+  color: #042318;
+  background: var(--accent);
+}
+
+.button.primary:hover,
+.send-button:hover:not(:disabled) { background: #61e5b8; transform: translateY(-1px); }
+
+.button.secondary {
+  color: var(--text);
+  background: rgba(151, 181, 204, 0.1);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.button.secondary:hover { background: rgba(151, 181, 204, 0.16); }
+
+.session-tabs {
+  display: flex;
+  min-height: 42px;
+  padding: 6px 10px 0;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  background: rgba(7, 16, 25, 0.72);
+}
+
+.session-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 142px;
+  max-width: 210px;
+  height: 36px;
+  padding: 0 9px 0 12px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 9px 9px 0 0;
+}
+
+.session-tab:hover { color: var(--text); background: rgba(151, 181, 204, 0.06); }
+
+.session-tab.active {
+  color: var(--text);
+  background: var(--panel-strong);
+  border-color: var(--border);
+}
+
+.session-name {
+  flex: 1;
+  overflow: hidden;
+  font: 12px "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.status-dot.open { background: var(--accent); box-shadow: 0 0 8px rgba(56, 211, 159, 0.6); }
+.status-dot.connecting { background: var(--warning); animation: pulse 1.2s infinite; }
+.status-dot.error { background: var(--danger); }
+
+.close-tab {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.close-tab:hover { color: white; background: rgba(255, 255, 255, 0.1); }
+
+.terminal-shell {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto 1fr auto;
+  background: rgba(4, 11, 18, 0.6);
+}
+
+.terminal-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  padding: 0 18px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  font: 11px "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}
+
+.text-button { padding: 4px 0; color: var(--accent); background: none; }
+.text-button:hover { color: #79edc7; }
+
+.terminal-output {
+  min-height: 0;
+  padding: 16px 18px 28px;
+  overflow: auto;
+  font: 13px/1.65 "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}
+
+.terminal-line {
+  display: grid;
+  grid-template-columns: 64px 16px 1fr;
+  gap: 4px;
+  min-height: 23px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-line time { color: #52687a; user-select: none; }
+.line-prefix { color: #62788a; user-select: none; }
+.line-command .line-prefix,
+.line-command .message-content { color: var(--accent); }
+.line-system .message-content { color: #8ba2b4; }
+.line-error .line-prefix,
+.line-error .message-content { color: var(--danger); }
+
+.command-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px 14px 10px 18px;
+  border-top: 1px solid var(--border);
+  background: rgba(13, 27, 41, 0.92);
+}
+
+.prompt { color: var(--accent); font: 700 16px "Cascadia Code", monospace; }
+
+.command-bar input,
+.dialog input {
+  color: var(--text);
+  outline: 0;
+  background: rgba(3, 10, 16, 0.58);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.command-bar input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  font: 13px "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}
+
+.command-bar input:focus,
+.dialog input:focus { border-color: rgba(56, 211, 159, 0.62); box-shadow: 0 0 0 3px rgba(56, 211, 159, 0.08); }
+
+.send-button {
+  height: 36px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.send-button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  min-height: 0;
+  padding: 32px;
+  text-align: center;
+}
+
+.empty-icon {
+  margin-bottom: 22px;
+  color: var(--accent);
+  font: 700 44px "Cascadia Code", monospace;
+  text-shadow: 0 0 24px rgba(56, 211, 159, 0.25);
+}
+
+.empty-state h2 { font-size: 19px; }
+.empty-state p { margin: 8px 0 22px; color: var(--muted); font-size: 13px; }
+
+.dialog-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(1, 6, 10, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.dialog {
+  width: min(480px, 100%);
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #102131;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.48);
+}
+
+.dialog-header { align-items: flex-start; justify-content: space-between; }
+.dialog h2 { font-size: 18px; }
+.dialog p { margin-top: 5px; color: var(--muted); font-size: 12px; }
+
+.icon-button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  color: var(--muted);
+  background: transparent;
+  border-radius: 8px;
+  font-size: 22px;
+}
+
+.icon-button:hover { color: white; background: rgba(255, 255, 255, 0.08); }
+
+.dialog form { margin-top: 24px; }
+.dialog label { display: block; margin-bottom: 8px; color: #a9bac8; font-size: 12px; }
+.dialog input { width: 100%; height: 42px; padding: 0 12px; font: 12px "Cascadia Code", monospace; }
+.dialog-actions { justify-content: flex-end; margin-top: 22px; }
+.form-error { color: var(--danger) !important; }
+
+.toast {
+  position: fixed;
+  z-index: 30;
+  top: 86px;
+  left: 50%;
+  max-width: min(560px, calc(100% - 40px));
+  padding: 10px 16px;
+  color: #041b13;
+  background: var(--accent);
+  border-radius: 9px;
+  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.4);
+  transform: translateX(-50%);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.toast.error { color: white; background: #d94f61; }
+.toast-enter-active,
+.toast-leave-active { transition: 180ms ease; }
+.toast-enter-from,
+.toast-leave-to { opacity: 0; transform: translate(-50%, -8px); }
+
+@keyframes pulse {
+  50% { opacity: 0.4; }
+}
+
+@media (max-width: 620px) {
+  .top-bar { padding: 12px; }
+  .brand p { max-width: 38vw; }
+  .button.secondary { display: none; }
+  .terminal-line { grid-template-columns: 16px 1fr; }
+  .terminal-line time { display: none; }
+}
+
