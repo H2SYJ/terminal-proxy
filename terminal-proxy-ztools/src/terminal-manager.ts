@@ -123,7 +123,7 @@ export function createTerminalManager(options: TerminalManagerOptions) {
 
   function createSession(initialCommand?: string): TerminalSession {
     const id = idFactory()
-    const session: TerminalSession = {
+    const session = reactive<TerminalSession>({
       id,
       label: `会话 ${id.slice(-6)}`,
       endpoint: options.getEndpoint(),
@@ -132,7 +132,7 @@ export function createTerminalManager(options: TerminalManagerOptions) {
       history: [],
       historyCursor: 0,
       pendingCommands: [],
-    }
+    })
     if (initialCommand?.trim()) {
       const command = initialCommand.trim()
       session.pendingCommands.push(command)
@@ -224,4 +224,3 @@ export function createTerminalManager(options: TerminalManagerOptions) {
 }
 
 export type TerminalManager = ReturnType<typeof createTerminalManager>
-

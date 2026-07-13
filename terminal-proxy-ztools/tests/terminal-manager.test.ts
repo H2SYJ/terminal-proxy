@@ -1,3 +1,4 @@
+import { watch } from 'vue'
 import { createTerminalManager } from '../src/terminal-manager'
 import type { WebSocketClient } from '../src/types'
 
@@ -72,6 +73,23 @@ describe('terminal manager', () => {
     expect(session.messages.at(-1)?.content).toBe('<img src=x onerror=alert(1)>')
   })
 
+  it('收到 WebSocket 消息时立即触发 Vue 响应式更新', () => {
+    const { manager, sockets } = createFixture()
+    const session = manager.createSession()
+    const observedLengths: number[] = []
+    const stopWatching = watch(
+      () => manager.activeSession.value?.messages.length,
+      (length) => observedLengths.push(length ?? 0),
+      { flush: 'sync' },
+    )
+
+    sockets[0].message('实时输出')
+
+    expect(session.messages.at(-1)?.content).toBe('实时输出')
+    expect(observedLengths).toEqual([2])
+    stopWatching()
+  })
+
   it('连接建立前接受手动命令并维护独立历史', () => {
     const { manager, sockets } = createFixture()
     const session = manager.createSession()
@@ -113,4 +131,3 @@ describe('terminal manager', () => {
     expect(manager.sessions.every((session) => session.status === 'closed')).toBe(true)
   })
 })
-
