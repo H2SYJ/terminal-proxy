@@ -1,33 +1,15 @@
+import {
+  createDynamicFeatureStore,
+  parseDynamicFeature,
+  type DynamicFeatureStore,
+} from './dynamic-features'
 import type { TerminalManager } from './terminal-manager'
-import type { DynamicFeature, ZToolsAdapter, ZToolsLaunchParam } from './types'
+import type { ZToolsAdapter, ZToolsLaunchParam } from './types'
+
+export { parseDynamicFeature } from './dynamic-features'
 
 export type FeedbackLevel = 'success' | 'error'
 export type FeedbackHandler = (message: string, level: FeedbackLevel) => void
-
-export function parseDynamicFeature(payload: unknown): DynamicFeature {
-  let feature: unknown = payload
-  if (typeof payload === 'string') {
-    try {
-      feature = JSON.parse(payload)
-    } catch {
-      throw new Error('指令配置不是有效的 JSON')
-    }
-  }
-  if (!feature || typeof feature !== 'object' || Array.isArray(feature)) {
-    throw new Error('指令配置必须是 JSON 对象')
-  }
-  const candidate = feature as Partial<DynamicFeature>
-  if (typeof candidate.code !== 'string' || !candidate.code.trim()) {
-    throw new Error('指令配置缺少有效的 code')
-  }
-  if (typeof candidate.explain !== 'string' || !candidate.explain.trim()) {
-    throw new Error('指令配置缺少有效的 explain')
-  }
-  if (!Array.isArray(candidate.cmds) || candidate.cmds.length === 0) {
-    throw new Error('指令配置缺少有效的 cmds')
-  }
-  return feature as DynamicFeature
-}
 
 export function resolveLaunchCommand(
   launch: ZToolsLaunchParam,
@@ -51,12 +33,14 @@ export function registerZToolsBridge(
   ztools: ZToolsAdapter,
   terminalManager: TerminalManager,
   feedback: FeedbackHandler,
+  featureStore: DynamicFeatureStore = createDynamicFeatureStore(ztools),
 ): void {
   ztools.onPluginEnter((launch) => {
     if (launch.code === 'addCommand') {
       try {
         const feature = parseDynamicFeature(launch.payload)
-        if (!ztools.setFeature(feature)) throw new Error('ZTools 未能保存该指令')
+        const result = featureStore.upsert(feature)
+        if (!result.ok) throw new Error(result.message)
         const message = `指令“${feature.explain}”添加成功`
         ztools.showNotification?.(message)
         feedback(message, 'success')
@@ -72,4 +56,3 @@ export function registerZToolsBridge(
     if (isKill) terminalManager.closeAll()
   })
 }
-

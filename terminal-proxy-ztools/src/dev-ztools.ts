@@ -29,6 +29,12 @@ export function getZToolsAdapter(): ZToolsAdapter {
       else features.push(feature)
       return true
     },
+    removeFeature(code) {
+      const index = features.findIndex((item) => item.code === code)
+      if (index < 0) return false
+      features.splice(index, 1)
+      return true
+    },
     showNotification(body) {
       console.info(`[ZTools 通知] ${body}`)
     },

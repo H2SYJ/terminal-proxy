@@ -33,7 +33,7 @@ npm run build
 
 ## 添加动态快捷指令
 
-插件支持通过 JSON 配置动态添加 ZTools 快捷指令。添加完成后，用户可以直接在 ZTools 主搜索框中输入关键词或符合正则表达式的内容，由插件自动连接终端代理服务并执行对应命令。
+插件提供可视化的动态快捷指令管理。打开插件右上角的“设置”，切换到“快捷指令”页签，即可查看、新建、编辑、删除和刷新指令。添加完成后，用户可以直接在 ZTools 主搜索框中输入关键词或符合正则表达式的内容，由插件自动连接终端代理服务并执行对应命令。
 
 ### 添加固定命令
 
@@ -43,13 +43,13 @@ npm run build
 sh download.sh
 ```
 
-在 ZTools 主搜索框粘贴下面这一整行 JSON：
+在“设置 → 快捷指令”中点击“添加指令”，填写：
 
-```json
-{"code":"download","explain":"sh download.sh","cmds":["download","下载脚本"]}
-```
+- 指令标识：`download`
+- 执行命令：`sh download.sh`
+- 触发关键词：每行分别填写 `download` 和“下载脚本”
 
-选择搜索结果中的“添加指令”。以后输入 `download` 或“下载脚本”并选择该功能，插件就会执行 `sh download.sh`。
+保存后，输入 `download` 或“下载脚本”并选择该功能，插件就会执行 `sh download.sh`。
 
 ### 匹配 HTTPS 网址并作为参数执行
 
@@ -59,13 +59,17 @@ sh download.sh
 sh download.sh ${url}
 ```
 
-在 ZTools 主搜索框粘贴下面这一整行 JSON：
+在“设置 → 快捷指令”中点击“添加指令”，填写：
 
-```json
-{"code":"download-url","explain":"sh download.sh","cmds":[{"type":"regex","label":"下载 HTTPS 网址","match":"/^https:\\/\\/[^\\s]+$/i","minLength":8,"maxLength":2048}]}
-```
+- 指令标识：`download-url`
+- 执行命令：`sh download.sh`
+- 启用正则匹配：是
+- 搜索结果名称：`下载 HTTPS 网址`
+- 正则表达式：`/^https:\/\/[^\s]+$/i`
+- 最小长度：`8`
+- 最大长度：`2048`
 
-选择“添加指令”后，在 ZTools 搜索框输入：
+保存后，在 ZTools 搜索框输入：
 
 ```text
 https://example.com/file.zip
@@ -75,6 +79,20 @@ https://example.com/file.zip
 
 ```bash
 sh download.sh https://example.com/file.zip
+```
+
+### JSON 兼容入口
+
+原有的搜索框 JSON 添加方式继续保留，可用于快速导入或管理 UI 无法无损表达的高级 Feature。添加固定命令时，在 ZTools 主搜索框粘贴下面这一整行并选择“添加指令”：
+
+```json
+{"code":"download","explain":"sh download.sh","cmds":["download","下载脚本"]}
+```
+
+添加 HTTPS 正则指令时使用：
+
+```json
+{"code":"download-url","explain":"sh download.sh","cmds":[{"type":"regex","label":"下载 HTTPS 网址","match":"/^https:\\/\\/[^\\s]+$/i","minLength":8,"maxLength":2048}]}
 ```
 
 动态指令配置字段说明：

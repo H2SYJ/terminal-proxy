@@ -5,12 +5,14 @@ import SettingsDialog from './components/SettingsDialog.vue'
 import TerminalConsole from './components/TerminalConsole.vue'
 import TopBar from './components/TopBar.vue'
 import { getZToolsAdapter } from './dev-ztools'
+import { createDynamicFeatureStore } from './dynamic-features'
 import { createSettingsStore } from './settings'
 import { createTerminalManager } from './terminal-manager'
 import { registerZToolsBridge, type FeedbackLevel } from './ztools-bridge'
 
 const ztools = getZToolsAdapter()
 const settingsStore = createSettingsStore(ztools.dbStorage)
+const featureStore = createDynamicFeatureStore(ztools)
 const terminalManager = createTerminalManager({ getEndpoint: () => settingsStore.endpoint.value })
 const settingsOpen = ref(false)
 const drafts = reactive<Record<string, string>>({})
@@ -32,7 +34,7 @@ function showFeedback(message: string, level: FeedbackLevel): void {
   }, 3500)
 }
 
-onMounted(() => registerZToolsBridge(ztools, terminalManager, showFeedback))
+onMounted(() => registerZToolsBridge(ztools, terminalManager, showFeedback, featureStore))
 
 function createSession(): void {
   terminalManager.createSession()
@@ -100,9 +102,11 @@ function resetEndpoint(): void {
     <SettingsDialog
       :open="settingsOpen"
       :endpoint="settingsStore.endpoint.value"
+      :feature-store="featureStore"
       @close="settingsOpen = false"
       @save="saveEndpoint"
       @reset="resetEndpoint"
+      @notify="showFeedback"
     />
   </div>
 </template>

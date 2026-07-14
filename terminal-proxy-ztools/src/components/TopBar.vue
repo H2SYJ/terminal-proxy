@@ -19,9 +19,8 @@ defineEmits<{
       </div>
     </div>
     <div class="top-actions">
-      <button class="button secondary" type="button" @click="$emit('openSettings')">连接设置</button>
+      <button class="button secondary" type="button" @click="$emit('openSettings')">设置</button>
       <button class="button primary" type="button" @click="$emit('newSession')">新建会话</button>
     </div>
   </header>
 </template>
-

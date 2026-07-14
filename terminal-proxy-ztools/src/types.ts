@@ -41,10 +41,21 @@ export interface ZToolsLaunchParam {
   payload: unknown
 }
 
+export interface RegexFeatureCommand {
+  type: 'regex'
+  label: string
+  match: string
+  minLength?: number
+  maxLength?: number
+  [key: string]: unknown
+}
+
+export type DynamicFeatureCommand = string | RegexFeatureCommand | Record<string, unknown>
+
 export interface DynamicFeature {
   code: string
   explain: string
-  cmds: unknown[]
+  cmds: DynamicFeatureCommand[]
   [key: string]: unknown
 }
 
@@ -59,7 +70,7 @@ export interface ZToolsAdapter {
   onPluginOut(callback: (isKill: boolean) => void): void
   getFeatures(codes?: string[]): DynamicFeature[]
   setFeature(feature: DynamicFeature): boolean
+  removeFeature(code: string): boolean
   showNotification?(body: string): void
   dbStorage: ZToolsStorage
 }
-

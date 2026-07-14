@@ -33,6 +33,7 @@ function createZToolsMock(features: DynamicFeature[] = []) {
     },
     getFeatures: vi.fn(() => features),
     setFeature: vi.fn(() => true),
+    removeFeature: vi.fn(() => true),
     showNotification: vi.fn(),
     dbStorage: {
       getItem: vi.fn(),
@@ -104,4 +105,3 @@ describe('ztools bridge', () => {
     expect(sockets[0].closed).toBe(true)
   })
 })
-

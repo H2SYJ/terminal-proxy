@@ -248,7 +248,8 @@ button { cursor: pointer; }
 .prompt { color: var(--accent); font: 700 16px "Cascadia Code", monospace; }
 
 .command-bar input,
-.dialog input {
+.dialog input:not([type="checkbox"]),
+.dialog textarea {
   color: var(--text);
   outline: 0;
   background: rgba(3, 10, 16, 0.58);
@@ -264,7 +265,8 @@ button { cursor: pointer; }
 }
 
 .command-bar input:focus,
-.dialog input:focus { border-color: rgba(56, 211, 159, 0.62); box-shadow: 0 0 0 3px rgba(56, 211, 159, 0.08); }
+.dialog input:focus,
+.dialog textarea:focus { border-color: rgba(56, 211, 159, 0.62); box-shadow: 0 0 0 3px rgba(56, 211, 159, 0.08); }
 
 .send-button {
   height: 36px;
@@ -335,9 +337,170 @@ button { cursor: pointer; }
 
 .dialog form { margin-top: 24px; }
 .dialog label { display: block; margin-bottom: 8px; color: #a9bac8; font-size: 12px; }
-.dialog input { width: 100%; height: 42px; padding: 0 12px; font: 12px "Cascadia Code", monospace; }
+.dialog input:not([type="checkbox"]) { width: 100%; height: 42px; padding: 0 12px; font: 12px "Cascadia Code", monospace; }
+.dialog textarea { width: 100%; padding: 10px 12px; resize: vertical; font: 12px/1.55 "Cascadia Code", monospace; }
 .dialog-actions { justify-content: flex-end; margin-top: 22px; }
 .form-error { color: var(--danger) !important; }
+
+.settings-dialog {
+  display: flex;
+  width: min(840px, 100%);
+  height: min(760px, calc(100vh - 48px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.settings-header { flex: none; padding: 20px 22px 16px; }
+
+.settings-tabs {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-tabs button {
+  position: relative;
+  min-height: 40px;
+  padding: 0 16px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.settings-tabs button::after {
+  position: absolute;
+  right: 12px;
+  bottom: -1px;
+  left: 12px;
+  height: 2px;
+  background: transparent;
+  content: "";
+}
+
+.settings-tabs button:hover,
+.settings-tabs button.active { color: var(--text); }
+.settings-tabs button.active::after { background: var(--accent); }
+
+.settings-content {
+  flex: 1;
+  min-height: 0;
+  padding: 22px;
+  overflow-y: auto;
+}
+
+.settings-content form { margin-top: 0; }
+.connection-settings { max-width: 620px; }
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.section-heading h3 { margin: 0; font-size: 15px; }
+.section-heading p { margin-top: 5px; }
+.feature-toolbar { align-items: center; }
+.toolbar-actions { display: flex; gap: 8px; }
+
+.feature-list { display: grid; gap: 10px; }
+
+.feature-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 76px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: rgba(3, 10, 16, 0.34);
+}
+
+.feature-card-main { flex: 1; min-width: 0; }
+.feature-title-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.feature-title-row strong { flex: none; color: var(--accent); font: 600 12px "Cascadia Code", monospace; }
+.feature-title-row code { overflow: hidden; color: var(--text); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.feature-card-main p { overflow: hidden; margin-top: 7px; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.feature-actions,
+.delete-confirmation { display: flex; flex: none; align-items: center; gap: 6px; }
+.delete-confirmation span { margin-right: 2px; color: var(--danger); font-size: 11px; }
+
+.small-button {
+  min-height: 29px;
+  padding: 0 9px;
+  color: #aebdca;
+  background: rgba(151, 181, 204, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+.small-button:hover { color: white; background: rgba(151, 181, 204, 0.14); }
+.small-button.danger,
+.small-button.danger-text:hover { color: white; background: #c84b5b; border-color: #c84b5b; }
+.small-button.danger-text { color: var(--danger); background: transparent; }
+
+.feature-empty {
+  display: flex;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.feature-empty span { color: var(--accent); font: 700 30px "Cascadia Code", monospace; }
+.feature-empty p { margin: 14px 0 4px; color: var(--text); font-size: 14px; }
+.feature-empty small { font-size: 11px; }
+
+.feature-alert {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.feature-alert.error { color: #ffd7dc; background: rgba(255, 107, 122, 0.12); border: 1px solid rgba(255, 107, 122, 0.28); }
+
+.feature-editor { max-width: 740px; }
+.form-grid { display: grid; gap: 14px; }
+.form-grid.two-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.form-field { margin-bottom: 18px; }
+.form-field small { display: block; margin-top: 6px; color: var(--muted); font-size: 10px; }
+.form-field input:disabled { opacity: 0.62; cursor: not-allowed; }
+
+.check-row {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 9px;
+  margin: 2px 0 16px !important;
+  cursor: pointer;
+  user-select: none;
+}
+
+.check-row input { width: 16px; height: 16px; accent-color: var(--accent); }
+.check-row span { color: var(--text); font-size: 12px; }
+
+.regex-fields {
+  margin-bottom: 18px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(3, 10, 16, 0.28);
+}
+
+.regex-fields .form-field { margin-bottom: 12px; }
+.compact-fields { max-width: 360px; }
+.json-editor { min-height: 310px; resize: vertical; }
+.editor-actions { padding-top: 4px; border-top: 1px solid var(--border); }
 
 .toast {
   position: fixed;
@@ -368,8 +531,13 @@ button { cursor: pointer; }
 @media (max-width: 620px) {
   .top-bar { padding: 12px; }
   .brand p { max-width: 38vw; }
-  .button.secondary { display: none; }
+  .top-actions .button { padding: 0 10px; }
   .terminal-line { grid-template-columns: 16px 1fr; }
   .terminal-line time { display: none; }
+  .settings-dialog { height: calc(100vh - 24px); max-height: calc(100vh - 24px); }
+  .settings-content { padding: 16px; }
+  .form-grid.two-columns { grid-template-columns: 1fr; }
+  .feature-card { align-items: flex-start; flex-direction: column; }
+  .feature-actions,
+  .delete-confirmation { align-self: flex-end; }
 }
-
