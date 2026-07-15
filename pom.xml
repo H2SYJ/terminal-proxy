@@ -10,7 +10,7 @@
     </parent>
     <groupId>team.h2syj</groupId>
     <artifactId>terminal-proxy</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
     <name>terminal-proxy</name>
     <description>terminal-proxy</description>
     <properties>

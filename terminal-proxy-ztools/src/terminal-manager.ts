@@ -18,6 +18,13 @@ export interface TerminalManagerOptions {
   now?: () => number
 }
 
+interface OutputState {
+  message?: TerminalMessage
+  content: string
+  cursor: number
+  controlSequence: string
+}
+
 function defaultIdFactory(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID()
@@ -30,6 +37,7 @@ export function createTerminalManager(options: TerminalManagerOptions) {
   const idFactory = options.idFactory ?? defaultIdFactory
   const now = options.now ?? Date.now
   const sessions = reactive<TerminalSession[]>([])
+  const outputStates = new WeakMap<TerminalSession, OutputState>()
   const activeSessionId = ref<string | null>(null)
   const activeSession = computed(
     () => sessions.find((session) => session.id === activeSessionId.value) ?? null,
@@ -40,14 +48,126 @@ export function createTerminalManager(options: TerminalManagerOptions) {
     type: TerminalMessageType,
     content: string,
   ): TerminalMessage {
-    const message: TerminalMessage = {
+    // 输出进度会在不增加数组元素的情况下修改 content，因此消息对象自身也必须是响应式的。
+    const message = reactive<TerminalMessage>({
       id: idFactory(),
       type,
       content,
       timestamp: now(),
-    }
+    })
     session.messages.push(message)
     return message
+  }
+
+  function getOutputState(session: TerminalSession): OutputState {
+    let state = outputStates.get(session)
+    if (!state) {
+      state = { content: '', cursor: 0, controlSequence: '' }
+      outputStates.set(session, state)
+    }
+    return state
+  }
+
+  function ensureOutputMessage(session: TerminalSession, state: OutputState): TerminalMessage {
+    if (!state.message) state.message = addMessage(session, 'output', state.content)
+    return state.message
+  }
+
+  function updateOutputMessage(session: TerminalSession, state: OutputState): void {
+    ensureOutputMessage(session, state).content = state.content
+  }
+
+  function finishOutputLine(session: TerminalSession, state: OutputState): void {
+    updateOutputMessage(session, state)
+    state.message = undefined
+    state.content = ''
+    state.cursor = 0
+  }
+
+  function writeOutputText(state: OutputState, text: string): void {
+    const before = state.content.slice(0, state.cursor)
+    const after = state.content.slice(state.cursor + text.length)
+    state.content = `${before}${text}${after}`
+    state.cursor += text.length
+  }
+
+  function applyCsiSequence(state: OutputState, sequence: string): void {
+    const match = /^\x1b\[([?\d;]*)([@-~])$/.exec(sequence)
+    if (!match) return
+    const parameters = match[1].replace(/^\?/, '').split(';')
+    const first = Number(parameters[0] || 0)
+
+    switch (match[2]) {
+      case 'K':
+        if (first === 1) {
+          state.content = `${' '.repeat(state.cursor)}${state.content.slice(state.cursor)}`
+        } else if (first === 2) {
+          state.content = ''
+          state.cursor = 0
+        } else {
+          state.content = state.content.slice(0, state.cursor)
+        }
+        break
+      case 'G':
+        state.cursor = Math.max(0, (first || 1) - 1)
+        break
+      case 'C':
+        state.cursor = Math.min(state.content.length, state.cursor + (first || 1))
+        break
+      case 'D':
+        state.cursor = Math.max(0, state.cursor - (first || 1))
+        break
+    }
+  }
+
+  function isControlSequenceComplete(sequence: string): boolean {
+    if (sequence.startsWith('\x1b]')) {
+      return sequence.endsWith('\x07') || sequence.endsWith('\x1b\\')
+    }
+    if (sequence.startsWith('\x1b[')) {
+      return sequence.length > 2 && /[@-~]$/.test(sequence)
+    }
+    return sequence.length >= 2
+  }
+
+  function appendOutput(session: TerminalSession, chunk: string): void {
+    const state = getOutputState(session)
+
+    for (const character of chunk) {
+      if (state.controlSequence) {
+        state.controlSequence += character
+        if (isControlSequenceComplete(state.controlSequence)) {
+          applyCsiSequence(state, state.controlSequence)
+          state.controlSequence = ''
+        } else if (state.controlSequence.length > 256) {
+          state.controlSequence = ''
+        }
+        continue
+      }
+
+      if (character === '\x1b') {
+        state.controlSequence = character
+      } else if (character === '\r') {
+        state.cursor = 0
+      } else if (character === '\n') {
+        finishOutputLine(session, state)
+      } else if (character === '\b') {
+        state.cursor = Math.max(0, state.cursor - 1)
+      } else if (character === '\t') {
+        writeOutputText(state, ' '.repeat(8 - (state.cursor % 8)))
+      } else if (character >= ' ') {
+        writeOutputText(state, character)
+      }
+    }
+
+    if (state.message || state.content) updateOutputMessage(session, state)
+  }
+
+  function finishPendingOutput(session: TerminalSession): void {
+    const state = outputStates.get(session)
+    if (!state) return
+    if (state.message || state.content) finishOutputLine(session, state)
+    state.controlSequence = ''
   }
 
   function findSession(sessionId?: string): TerminalSession | undefined {
@@ -72,6 +192,7 @@ export function createTerminalManager(options: TerminalManagerOptions) {
     const socket = session.socket
     if (!socket || socket.readyState !== OPEN) return false
     try {
+      finishPendingOutput(session)
       socket.send(command)
       addMessage(session, 'command', command)
       return true
@@ -83,6 +204,7 @@ export function createTerminalManager(options: TerminalManagerOptions) {
   }
 
   function connectSession(session: TerminalSession): void {
+    finishPendingOutput(session)
     detachAndCloseSocket(session)
     session.endpoint = options.getEndpoint()
     session.status = 'connecting'
@@ -107,7 +229,16 @@ export function createTerminalManager(options: TerminalManagerOptions) {
     }
     socket.onmessage = (event) => {
       if (session.socket !== socket) return
-      addMessage(session, 'output', String(event.data))
+      const content = String(event.data)
+      if (content === '连接成功') {
+        // WebSocket 的 onopen 已记录连接状态，忽略服务端的兼容性问候消息。
+        return
+      } else if (/^!exit:-?\d+$/.test(content)) {
+        finishPendingOutput(session)
+        addMessage(session, 'system', `进程结束，退出码 ${content.slice(6)}`)
+      } else {
+        appendOutput(session, content)
+      }
     }
     socket.onerror = () => {
       if (session.socket !== socket) return
@@ -196,6 +327,7 @@ export function createTerminalManager(options: TerminalManagerOptions) {
     const index = sessions.findIndex((session) => session.id === sessionId)
     if (index < 0) return
     detachAndCloseSocket(sessions[index])
+    outputStates.delete(sessions[index])
     sessions.splice(index, 1)
     if (activeSessionId.value === sessionId) {
       activeSessionId.value = sessions[Math.min(index, sessions.length - 1)]?.id ?? null

@@ -69,6 +69,10 @@ describe('terminal manager', () => {
     expect(sockets[0].sent).toEqual(['echo hello'])
     expect(session.messages.some((message) => message.type === 'command' && message.content === 'echo hello')).toBe(true)
 
+    const messageCount = session.messages.length
+    sockets[0].message('连接成功')
+    expect(session.messages).toHaveLength(messageCount)
+
     sockets[0].message('<img src=x onerror=alert(1)>')
     expect(session.messages.at(-1)?.content).toBe('<img src=x onerror=alert(1)>')
   })
@@ -88,6 +92,53 @@ describe('terminal manager', () => {
     expect(session.messages.at(-1)?.content).toBe('实时输出')
     expect(observedLengths).toEqual([2])
     stopWatching()
+  })
+
+  it('使用回车符原位更新进度，不为每次刷新新增输出行', () => {
+    const { manager, sockets } = createFixture()
+    const session = manager.createSession()
+
+    sockets[0].message('下载进度 10%\r')
+    const outputMessage = session.messages.find((message) => message.type === 'output')
+    const observedContents: string[] = []
+    const stopWatching = watch(
+      () => outputMessage?.content,
+      (content) => {
+        if (content !== undefined) observedContents.push(content)
+      },
+      { flush: 'sync' },
+    )
+    sockets[0].message('下载进度 50%\r下载进度 100%\n')
+
+    const outputMessages = session.messages.filter((message) => message.type === 'output')
+    expect(outputMessages).toHaveLength(1)
+    expect(outputMessages[0].content).toBe('下载进度 100%')
+    expect(observedContents).toEqual(['下载进度 100%'])
+    stopWatching()
+  })
+
+  it('支持跨 WebSocket 消息传输的 ANSI 清行和光标定位指令', () => {
+    const { manager, sockets } = createFixture()
+    const session = manager.createSession()
+
+    sockets[0].message('处理中 10%')
+    sockets[0].message('\x1b[')
+    sockets[0].message('2K\x1b[1G处理中 80%\n完成\n')
+
+    const outputMessages = session.messages.filter((message) => message.type === 'output')
+    expect(outputMessages.map((message) => message.content)).toEqual(['处理中 80%', '完成'])
+  })
+
+  it('保留普通多行输出，并将退出状态显示为系统消息', () => {
+    const { manager, sockets } = createFixture()
+    const session = manager.createSession()
+
+    sockets[0].message('第一行\n第二行\n')
+    sockets[0].message('!exit:0')
+
+    expect(session.messages.filter((message) => message.type === 'output').map((message) => message.content))
+      .toEqual(['第一行', '第二行'])
+    expect(session.messages.at(-1)).toMatchObject({ type: 'system', content: '进程结束，退出码 0' })
   })
 
   it('连接建立前接受手动命令并维护独立历史', () => {

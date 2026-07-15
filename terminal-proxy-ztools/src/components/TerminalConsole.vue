@@ -18,7 +18,10 @@ const emit = defineEmits<{
 const outputElement = ref<HTMLElement | null>(null)
 
 watch(
-  () => [props.session?.id, props.session?.messages.length],
+  () => {
+    const messages = props.session?.messages
+    return [props.session?.id, messages?.length, messages?.at(-1)?.content]
+  },
   async () => {
     await nextTick()
     const element = outputElement.value
@@ -99,4 +102,3 @@ function formatTime(timestamp: number): string {
     <button class="button primary" type="button" @click="$emit('newSession')">新建会话</button>
   </main>
 </template>
-
