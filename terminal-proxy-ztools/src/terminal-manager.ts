@@ -8,6 +8,7 @@ import type {
 
 const CONNECTING = 0
 const OPEN = 1
+const MAX_OUTPUT_ROWS = 1000
 
 export type WebSocketFactory = (endpoint: string) => WebSocketClient
 
@@ -18,11 +19,18 @@ export interface TerminalManagerOptions {
   now?: () => number
 }
 
-interface OutputState {
-  message?: TerminalMessage
+interface OutputLine {
+  message: TerminalMessage
   content: string
   cursor: number
+}
+
+interface OutputState {
+  lines: OutputLine[]
+  row: number
   controlSequence: string
+  savedRow?: number
+  savedCursor?: number
 }
 
 function defaultIdFactory(): string {
@@ -62,60 +70,105 @@ export function createTerminalManager(options: TerminalManagerOptions) {
   function getOutputState(session: TerminalSession): OutputState {
     let state = outputStates.get(session)
     if (!state) {
-      state = { content: '', cursor: 0, controlSequence: '' }
+      state = { lines: [], row: 0, controlSequence: '' }
       outputStates.set(session, state)
     }
     return state
   }
 
-  function ensureOutputMessage(session: TerminalSession, state: OutputState): TerminalMessage {
-    if (!state.message) state.message = addMessage(session, 'output', state.content)
-    return state.message
+  function ensureOutputLine(session: TerminalSession, state: OutputState): OutputLine {
+    while (state.lines.length <= state.row) {
+      state.lines.push({
+        message: addMessage(session, 'output', ''),
+        content: '',
+        cursor: 0,
+      })
+    }
+    return state.lines[state.row]
   }
 
-  function updateOutputMessage(session: TerminalSession, state: OutputState): void {
-    ensureOutputMessage(session, state).content = state.content
+  function syncOutputLines(state: OutputState): void {
+    state.lines.forEach((line) => {
+      if (line.message.content !== line.content) line.message.content = line.content
+    })
   }
 
-  function finishOutputLine(session: TerminalSession, state: OutputState): void {
-    updateOutputMessage(session, state)
-    state.message = undefined
-    state.content = ''
-    state.cursor = 0
+  function moveOutputRow(state: OutputState, offset: number): void {
+    state.row = Math.max(0, Math.min(MAX_OUTPUT_ROWS - 1, state.row + offset))
   }
 
-  function writeOutputText(state: OutputState, text: string): void {
-    const before = state.content.slice(0, state.cursor)
-    const after = state.content.slice(state.cursor + text.length)
-    state.content = `${before}${text}${after}`
-    state.cursor += text.length
+  function writeOutputText(session: TerminalSession, state: OutputState, text: string): void {
+    const line = ensureOutputLine(session, state)
+    const before = line.content.slice(0, line.cursor)
+    const after = line.content.slice(line.cursor + text.length)
+    line.content = `${before}${text}${after}`
+    line.cursor += text.length
   }
 
-  function applyCsiSequence(state: OutputState, sequence: string): void {
+  function applyCsiSequence(session: TerminalSession, state: OutputState, sequence: string): void {
     const match = /^\x1b\[([?\d;]*)([@-~])$/.exec(sequence)
     if (!match) return
     const parameters = match[1].replace(/^\?/, '').split(';')
     const first = Number(parameters[0] || 0)
+    const line = () => ensureOutputLine(session, state)
 
     switch (match[2]) {
+      case 'A':
+        moveOutputRow(state, -(first || 1))
+        break
+      case 'B':
+        moveOutputRow(state, first || 1)
+        break
       case 'K':
         if (first === 1) {
-          state.content = `${' '.repeat(state.cursor)}${state.content.slice(state.cursor)}`
+          line().content = `${' '.repeat(line().cursor)}${line().content.slice(line().cursor)}`
         } else if (first === 2) {
-          state.content = ''
-          state.cursor = 0
+          line().content = ''
+          line().cursor = 0
         } else {
-          state.content = state.content.slice(0, state.cursor)
+          line().content = line().content.slice(0, line().cursor)
         }
         break
       case 'G':
-        state.cursor = Math.max(0, (first || 1) - 1)
+        line().cursor = Math.max(0, (first || 1) - 1)
         break
       case 'C':
-        state.cursor = Math.min(state.content.length, state.cursor + (first || 1))
+        line().cursor = Math.min(line().content.length, line().cursor + (first || 1))
         break
       case 'D':
-        state.cursor = Math.max(0, state.cursor - (first || 1))
+        line().cursor = Math.max(0, line().cursor - (first || 1))
+        break
+      case 'E':
+        moveOutputRow(state, first || 1)
+        line().cursor = 0
+        break
+      case 'F':
+        moveOutputRow(state, -(first || 1))
+        line().cursor = 0
+        break
+      case 'H':
+      case 'f': {
+        const targetRow = Math.max(0, Number(parameters[0] || 1) - 1)
+        state.row = Math.min(MAX_OUTPUT_ROWS - 1, targetRow)
+        line().cursor = Math.max(0, Number(parameters[1] || 1) - 1)
+        break
+      }
+      case 'J':
+        if (first === 2 || first === 3) {
+          state.lines.forEach((outputLine) => {
+            outputLine.content = ''
+            outputLine.cursor = 0
+          })
+          state.row = 0
+        }
+        break
+      case 's':
+        state.savedRow = state.row
+        state.savedCursor = line().cursor
+        break
+      case 'u':
+        state.row = Math.min(MAX_OUTPUT_ROWS - 1, state.savedRow ?? state.row)
+        line().cursor = state.savedCursor ?? line().cursor
         break
     }
   }
@@ -137,7 +190,7 @@ export function createTerminalManager(options: TerminalManagerOptions) {
       if (state.controlSequence) {
         state.controlSequence += character
         if (isControlSequenceComplete(state.controlSequence)) {
-          applyCsiSequence(state, state.controlSequence)
+          applyCsiSequence(session, state, state.controlSequence)
           state.controlSequence = ''
         } else if (state.controlSequence.length > 256) {
           state.controlSequence = ''
@@ -148,26 +201,30 @@ export function createTerminalManager(options: TerminalManagerOptions) {
       if (character === '\x1b') {
         state.controlSequence = character
       } else if (character === '\r') {
-        state.cursor = 0
+        ensureOutputLine(session, state).cursor = 0
       } else if (character === '\n') {
-        finishOutputLine(session, state)
+        ensureOutputLine(session, state)
+        moveOutputRow(state, 1)
+        if (state.row < state.lines.length) state.lines[state.row].cursor = 0
       } else if (character === '\b') {
-        state.cursor = Math.max(0, state.cursor - 1)
+        const line = ensureOutputLine(session, state)
+        line.cursor = Math.max(0, line.cursor - 1)
       } else if (character === '\t') {
-        writeOutputText(state, ' '.repeat(8 - (state.cursor % 8)))
+        const line = ensureOutputLine(session, state)
+        writeOutputText(session, state, ' '.repeat(8 - (line.cursor % 8)))
       } else if (character >= ' ') {
-        writeOutputText(state, character)
+        writeOutputText(session, state, character)
       }
     }
 
-    if (state.message || state.content) updateOutputMessage(session, state)
+    syncOutputLines(state)
   }
 
   function finishPendingOutput(session: TerminalSession): void {
     const state = outputStates.get(session)
     if (!state) return
-    if (state.message || state.content) finishOutputLine(session, state)
-    state.controlSequence = ''
+    syncOutputLines(state)
+    outputStates.delete(session)
   }
 
   function findSession(sessionId?: string): TerminalSession | undefined {
@@ -242,11 +299,13 @@ export function createTerminalManager(options: TerminalManagerOptions) {
     }
     socket.onerror = () => {
       if (session.socket !== socket) return
+      finishPendingOutput(session)
       session.status = 'error'
       addMessage(session, 'error', '连接发生异常，请检查服务地址和网络状态')
     }
     socket.onclose = () => {
       if (session.socket !== socket) return
+      finishPendingOutput(session)
       if (session.status !== 'error') session.status = 'closed'
       addMessage(session, 'system', '连接已关闭')
     }

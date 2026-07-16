@@ -129,6 +129,37 @@ describe('terminal manager', () => {
     expect(outputMessages.map((message) => message.content)).toEqual(['处理中 80%', '完成'])
   })
 
+  it('支持 ANSI 光标上下移动并原位刷新多行进度', () => {
+    const { manager, sockets } = createFixture()
+    const session = manager.createSession()
+
+    sockets[0].message('任务 A   0%\n任务 B   0%\n任务 C   0%')
+    const outputMessages = session.messages.filter((message) => message.type === 'output')
+    const firstLineChanges: string[] = []
+    const stopWatching = watch(
+      () => outputMessages[0]?.content,
+      (content) => {
+        if (content !== undefined) firstLineChanges.push(content)
+      },
+      { flush: 'sync' },
+    )
+
+    sockets[0].message(
+      '\x1b[2A\r\x1b[2K任务 A  50%\n' +
+      '\r\x1b[2K任务 B  40%\n' +
+      '\r\x1b[2K任务 C  30%',
+    )
+
+    expect(session.messages.filter((message) => message.type === 'output')).toHaveLength(3)
+    expect(outputMessages.map((message) => message.content)).toEqual([
+      '任务 A  50%',
+      '任务 B  40%',
+      '任务 C  30%',
+    ])
+    expect(firstLineChanges).toEqual(['任务 A  50%'])
+    stopWatching()
+  })
+
   it('保留普通多行输出，并将退出状态显示为系统消息', () => {
     const { manager, sockets } = createFixture()
     const session = manager.createSession()
